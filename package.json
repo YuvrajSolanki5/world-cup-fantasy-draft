@@ -1,0 +1,27 @@
+{
+  "name": "world-cup-fantasy-draft",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build --minify false",
+    "preview": "vite preview --host 127.0.0.1",
+    "test:e2e": "playwright test",
+    "cf:deploy": "npm run build && wrangler pages deploy dist --project-name world-cup-fantasy-draft",
+    "cf:d1:schema": "wrangler d1 execute world-cup-fantasy-draft --file schema.sql"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^6.0.2",
+    "lucide-react": "0.468.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "vite": "^8.0.14"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0"
+  }
+}

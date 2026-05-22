@@ -1,0 +1,8 @@
+name = "world-cup-fantasy-draft"
+compatibility_date = "2026-05-21"
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "world-cup-fantasy-draft"
+database_id = "3804bbf8-7fad-40e5-bc9a-a31d75fcae4d"

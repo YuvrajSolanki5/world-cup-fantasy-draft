@@ -1,0 +1,75 @@
+{
+  "source": "Demo Stats API",
+  "matches": [
+    {
+      "id": "demo-arg-bra",
+      "home": "Argentina",
+      "away": "Brazil",
+      "score": "2-1"
+    },
+    {
+      "id": "demo-eng-fra",
+      "home": "England",
+      "away": "France",
+      "score": "1-1"
+    },
+    {
+      "id": "demo-por-esp",
+      "home": "Portugal",
+      "away": "Spain",
+      "score": "2-2"
+    }
+  ],
+  "players": [
+    {
+      "name": "Lionel Messi",
+      "country": "Argentina",
+      "stats": { "appearances": 1, "starts": 1, "minutes": 90, "goals": 1, "assists": 1, "cleanSheets": 0, "saves": 0, "penaltySaves": 0, "yellowCards": 0, "redCards": 0, "apiRating": 8.8 }
+    },
+    {
+      "name": "Lautaro Martinez",
+      "country": "Argentina",
+      "stats": { "appearances": 1, "starts": 1, "minutes": 78, "goals": 1, "assists": 0, "cleanSheets": 0, "saves": 0, "penaltySaves": 0, "yellowCards": 1, "redCards": 0, "apiRating": 7.5 }
+    },
+    {
+      "name": "Vinicius Jr.",
+      "country": "Brazil",
+      "stats": { "appearances": 1, "starts": 1, "minutes": 90, "goals": 1, "assists": 0, "cleanSheets": 0, "saves": 0, "penaltySaves": 0, "yellowCards": 0, "redCards": 0, "apiRating": 8.1 }
+    },
+    {
+      "name": "Alisson Becker",
+      "country": "Brazil",
+      "stats": { "appearances": 1, "starts": 1, "minutes": 90, "goals": 0, "assists": 0, "cleanSheets": 0, "saves": 5, "penaltySaves": 0, "yellowCards": 0, "redCards": 0, "apiRating": 7.2 }
+    },
+    {
+      "name": "Jude Bellingham",
+      "country": "England",
+      "stats": { "appearances": 1, "starts": 1, "minutes": 90, "goals": 1, "assists": 0, "cleanSheets": 0, "saves": 0, "penaltySaves": 0, "yellowCards": 0, "redCards": 0, "apiRating": 8.3 }
+    },
+    {
+      "name": "Kylian Mbappe",
+      "country": "France",
+      "stats": { "appearances": 1, "starts": 1, "minutes": 90, "goals": 1, "assists": 0, "cleanSheets": 0, "saves": 0, "penaltySaves": 0, "yellowCards": 0, "redCards": 0, "apiRating": 8.4 }
+    },
+    {
+      "name": "Cristiano Ronaldo",
+      "country": "Portugal",
+      "stats": { "appearances": 1, "starts": 1, "minutes": 84, "goals": 1, "assists": 0, "cleanSheets": 0, "saves": 0, "penaltySaves": 0, "yellowCards": 0, "redCards": 0, "apiRating": 7.9 }
+    },
+    {
+      "name": "Bruno Fernandes",
+      "country": "Portugal",
+      "stats": { "appearances": 1, "starts": 1, "minutes": 90, "goals": 0, "assists": 2, "cleanSheets": 0, "saves": 0, "penaltySaves": 0, "yellowCards": 1, "redCards": 0, "apiRating": 8.2 }
+    },
+    {
+      "name": "Lamine Yamal",
+      "country": "Spain",
+      "stats": { "appearances": 1, "starts": 1, "minutes": 75, "goals": 1, "assists": 1, "cleanSheets": 0, "saves": 0, "penaltySaves": 0, "yellowCards": 0, "redCards": 0, "apiRating": 8.6 }
+    },
+    {
+      "name": "Pedri",
+      "country": "Spain",
+      "stats": { "appearances": 1, "starts": 1, "minutes": 90, "goals": 1, "assists": 0, "cleanSheets": 0, "saves": 0, "penaltySaves": 0, "yellowCards": 0, "redCards": 0, "apiRating": 7.8 }
+    }
+  ]
+}
