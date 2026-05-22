@@ -49,24 +49,45 @@ export async function sha256Base64Url(text) {
   return base64Url(new Uint8Array(digest));
 }
 
-export async function hashPassword(password, salt = randomToken(18)) {
-  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      hash: "SHA-256",
-      salt: new TextEncoder().encode(salt),
-      iterations: 210000,
-    },
-    key,
-    256
-  );
-  return { salt, hash: base64Url(new Uint8Array(bits)) };
+export async function hashPassword(password, salt = `pbkdf2$${randomToken(18)}`) {
+  const [algorithm, rawSalt] = salt.includes("$") ? salt.split("$", 2) : ["pbkdf2", salt];
+
+  if (algorithm === "sha256i") {
+    return { salt, hash: await iterativeSha256(password, rawSalt) };
+  }
+
+  try {
+    const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+    const bits = await crypto.subtle.deriveBits(
+      {
+        name: "PBKDF2",
+        hash: "SHA-256",
+        salt: new TextEncoder().encode(rawSalt),
+        iterations: 210000,
+      },
+      key,
+      256
+    );
+    return { salt, hash: base64Url(new Uint8Array(bits)) };
+  } catch {
+    const safeSalt = rawSalt || randomToken(18);
+    const fallbackSalt = `sha256i$${safeSalt}`;
+    return { salt: fallbackSalt, hash: await iterativeSha256(password, safeSalt) };
+  }
 }
 
 export async function verifyPassword(password, salt, expectedHash) {
   const { hash } = await hashPassword(password, salt);
   return timingSafeEqual(hash, expectedHash);
+}
+
+export async function iterativeSha256(password, salt, rounds = 120000) {
+  const encoder = new TextEncoder();
+  let input = encoder.encode(`${salt}:${password}`);
+  for (let index = 0; index < rounds; index += 1) {
+    input = new Uint8Array(await crypto.subtle.digest("SHA-256", input));
+  }
+  return base64Url(input);
 }
 
 export function timingSafeEqual(a, b) {
