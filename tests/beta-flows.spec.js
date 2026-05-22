@@ -35,10 +35,16 @@ test("beta league flow gates pages, queues pre-draft picks, and supports live-mo
   const joiner = await joinerContext.newPage();
   await signUp(joiner, `joiner-${stamp}@draft.local`, "Joiner XI");
   await joiner.goto(inviteUrl);
-  await expect(joiner.getByText(/Joined league|Invite imported and joined|already in that league/i)).toBeVisible();
+  await expect(joiner.getByRole("heading", { name: "League of Champions" }).first()).toBeVisible();
   await expect(joiner.getByRole("button", { name: "Settings", exact: true })).toHaveCount(0);
   await expect(joiner.getByRole("button", { name: "Start Draft" })).toHaveCount(0);
   await joinerContext.close();
+
+  await page.getByRole("button", { name: "Start Draft" }).click();
+  await expect(page.getByRole("button", { name: "Force Pick" })).toBeVisible();
+  await page.getByRole("button", { name: "Force Pick" }).click();
+  await expect(page.locator(".draft-side .queue-item")).toHaveCount(0);
+  await expect(page.locator(".draft-side").getByText("1/15 selected")).toBeVisible();
 
   await page.getByRole("button", { name: "Settings" }).click();
   await expect(page.getByRole("heading", { name: "Commissioner Tools" })).toBeVisible();

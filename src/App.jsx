@@ -725,6 +725,11 @@ async function readApiJson(response, unavailableMessage) {
   return data;
 }
 
+function canUseLocalInviteFallback(error) {
+  const message = String(error?.message || error || "");
+  return /Remote league API is not available|Failed to fetch|NetworkError/i.test(message);
+}
+
 function stripLeagueSecrets(league) {
   return {
     ...league,
@@ -1893,19 +1898,31 @@ function DraftRoom({ db, selectedLeague, currentUserEmail, setDb, setNotice, set
 
   const makePick = (playerId, managerEmail = currentPicker?.email, source = "manual", priceOverride = 0) => {
     const player = playerById(playerId);
-    if (!league || !player || !managerEmail || draftedIds.has(player.id)) return false;
-
-    const manager = league.managers.find((candidate) => candidate.email === managerEmail);
-    if (!manager || manager.squad.length >= league.settings.squadSize) return false;
-
-    const auctionDraft = league.settings.draftType === "Auction Draft";
-    const pickCost = auctionDraft ? Math.max(priceOverride || player.price, 1) : 0;
-    if (auctionDraft && manager.budget < pickCost) {
-      setNotice("That manager does not have enough budget.");
-      return false;
-    }
+    if (!league || !player || !managerEmail) return false;
+    let pickedTeamName = "";
+    let blockedReason = "";
 
     updateLeague((current) => {
+      const currentDraftedIds = new Set((current.draft.log || []).map((entry) => entry.playerId));
+      if (currentDraftedIds.has(player.id)) {
+        blockedReason = `${player.name} has already been picked.`;
+        return current;
+      }
+
+      const manager = current.managers.find((candidate) => candidate.email === managerEmail);
+      if (!manager) return current;
+      if (manager.squad.length >= current.settings.squadSize) {
+        blockedReason = `${manager.teamName} already has a full squad.`;
+        return current;
+      }
+
+      const auctionDraft = current.settings.draftType === "Auction Draft";
+      const pickCost = auctionDraft ? Math.max(priceOverride || player.price, 1) : 0;
+      if (auctionDraft && manager.budget < pickCost) {
+        blockedReason = "That manager does not have enough budget.";
+        return current;
+      }
+
       const nextLog = [
         ...current.draft.log,
         {
@@ -1919,6 +1936,7 @@ function DraftRoom({ db, selectedLeague, currentUserEmail, setDb, setNotice, set
       ];
       const maxPicks = current.managers.length * current.settings.squadSize;
       const nextStatus = nextLog.length >= maxPicks ? "complete" : current.status;
+      pickedTeamName = manager.teamName;
 
       return {
         ...current,
@@ -1957,8 +1975,13 @@ function DraftRoom({ db, selectedLeague, currentUserEmail, setDb, setNotice, set
       };
     });
 
+    if (!pickedTeamName) {
+      if (blockedReason) setNotice(blockedReason);
+      return false;
+    }
+
     setTimerLeft(league.settings.pickTimer);
-    setNotice(`${player.name} picked by ${manager.teamName}.`);
+    setNotice(`${player.name} picked by ${pickedTeamName}.`);
     return true;
   };
 
@@ -2054,7 +2077,7 @@ function DraftRoom({ db, selectedLeague, currentUserEmail, setDb, setNotice, set
     updateLeague((current) => ({
       ...current,
       status: "drafting",
-      draft: { ...current.draft, paused: false, message: "Draft started." },
+      draft: { ...current.draft, order: current.managers.map((manager) => manager.email), paused: false, message: "Draft started." },
       activity: [{ id: makeId("activity"), text: "Draft started", createdAt: new Date().toISOString() }, ...current.activity],
     }));
     setTimerLeft(league.settings.pickTimer);
@@ -3303,35 +3326,36 @@ export default function App() {
     let cancelled = false;
 
     const handleInvite = async () => {
-      const result = joinLeagueByInvite(db, pendingInvite, currentUserEmail, currentUser.displayName || "My XI");
-
-      if (!result.leagueId && !pendingInvite.payload) {
-        try {
-          const remoteLeague = await joinRemoteLeague(pendingInvite.code, currentUser.displayName || "My XI");
-          if (cancelled) return;
-          setDb((old) => mergeRemoteLeagues(old, [remoteLeague]));
-          setSelectedLeagueId(remoteLeague.id);
-          setActiveView(canOpenDraft(remoteLeague) ? "draft" : "stats");
-          setNotice("Joined league from secure beta server.");
-          setHandledInviteKey(pendingInvite.key);
-          clearInviteFromUrl();
+      try {
+        const remoteLeague = await joinRemoteLeague(pendingInvite.code, currentUser.displayName || "My XI");
+        if (cancelled) return;
+        setDb((old) => mergeRemoteLeagues(old, [remoteLeague]));
+        setSelectedLeagueId(remoteLeague.id);
+        setActiveView(canOpenDraft(remoteLeague) ? "draft" : "stats");
+        setNotice("Joined league from secure beta server.");
+        setHandledInviteKey(pendingInvite.key);
+        clearInviteFromUrl();
+        return;
+      } catch (error) {
+        if (!pendingInvite.payload || !canUseLocalInviteFallback(error)) {
+          if (!cancelled) setNotice(error.message);
           return;
-        } catch (error) {
-          if (!String(error.message).includes("not available")) {
-            if (!cancelled) setNotice(error.message);
-            return;
-          }
         }
       }
 
+      let result;
+      setDb((old) => {
+        result = joinLeagueByInvite(old, pendingInvite, currentUserEmail, currentUser.displayName || "My XI");
+        return result.db;
+      });
+
       if (cancelled) return;
-      setDb(result.db);
       if (result.leagueId) {
         const joinedLeague = result.db.leagues.find((league) => league.id === result.leagueId);
         setSelectedLeagueId(result.leagueId);
         setActiveView(canOpenDraft(joinedLeague) ? "draft" : "stats");
       }
-      setNotice(result.message);
+      setNotice(result.leagueId ? `${result.message} Local fallback is active because the secure beta server is unavailable.` : result.message);
       setHandledInviteKey(pendingInvite.key);
       clearInviteFromUrl();
     };
